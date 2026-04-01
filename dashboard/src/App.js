@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Copy, FileBadge, Activity } from 'lucide-react';
+import { LayoutDashboard, Copy, FileBadge, Activity, Menu, X } from 'lucide-react';
 
 import DashboardStats from './components/DashboardStats';
 import ChartsView from './components/ChartsView';
@@ -11,6 +11,12 @@ import reportData from './data/report.json';
 
 function App() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const switchTab = (tab) => {
+    setActiveTab(tab);
+    setMenuOpen(false);
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -58,8 +64,17 @@ function App() {
 
   return (
     <div className="layout">
-      <aside className="sidebar glass-panel" style={{ borderRadius: 0, borderTop: 0, borderBottom: 0, borderLeft: 0 }}>
-        <div className="logo-container text-gradient">
+      {/* Mobile top bar */}
+      <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+        {menuOpen ? <X size={22} /> : <Menu size={22} />}
+        <span>Jira Analyzer</span>
+      </button>
+
+      <aside
+        className={`sidebar glass-panel ${menuOpen ? 'open' : ''}`}
+        style={{ borderRadius: 0, borderTop: 0, borderBottom: 0, borderLeft: 0 }}
+      >
+        <div className="logo-container text-gradient" style={{ color: '#ffcc00' }}>
           <Activity size={28} />
           <span>Jira Analyzer</span>
         </div>
@@ -67,27 +82,38 @@ function App() {
         <nav className="nav-links" style={{ marginTop: '32px' }}>
           <div
             className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
+            onClick={() => switchTab('overview')}
           >
             <LayoutDashboard size={20} />
             <span>Vue d'ensemble</span>
           </div>
           <div
             className={`nav-item ${activeTab === 'duplicates' ? 'active' : ''}`}
-            onClick={() => setActiveTab('duplicates')}
+            onClick={() => switchTab('duplicates')}
           >
             <Copy size={20} />
             <span>Groupes de doublons</span>
           </div>
           <div
             className={`nav-item ${activeTab === 'unique' ? 'active' : ''}`}
-            onClick={() => setActiveTab('unique')}
+            onClick={() => switchTab('unique')}
           >
             <FileBadge size={20} />
             <span>Tickets uniques</span>
           </div>
         </nav>
       </aside>
+
+      {/* Overlay to close menu on mobile */}
+      {menuOpen && (
+        <div
+          onClick={() => setMenuOpen(false)}
+          style={{
+            position: 'fixed', top: 56, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.3)', zIndex: 14,
+          }}
+        />
+      )}
 
       <main className="main-content">
         <header className="page-header">
