@@ -1,0 +1,5 @@
+claude-agent-sdk
+requests
+python-dotenv
+anyio
+pytest
