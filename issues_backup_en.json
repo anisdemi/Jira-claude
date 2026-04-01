@@ -1,0 +1,306 @@
+[
+  {
+    "key": "SCRUM-1",
+    "summary": "Users unable to login to mobile banking app after password reset",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "After resetting their password through the forgot password flow, users are unable to log back into the mobile banking application. They receive an \"Invalid credentials\" error even though the password was just changed. Affects both iOS and Android. Approximately 150 users impacted daily."
+  },
+  {
+    "key": "SCRUM-2",
+    "summary": "Mobile app login fails after changing password",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Mobile app login fails consistently when a user has just changed their password. The new credentials are not being recognized. Error code AUTH-401 is returned. Support tickets increasing â€” over 200 complaints this week alone. Workaround: users must wait 15-20 minutes before the new password works."
+  },
+  {
+    "key": "SCRUM-3",
+    "summary": "Authentication error when accessing mobile banking post password update",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Authentication error occurs when customers try to access the mobile banking platform after updating their password. The session token from the old password is not invalidated properly, causing a conflict with the new credentials. This seems to be a cache synchronization issue between the auth service and the mobile API gateway."
+  },
+  {
+    "key": "SCRUM-4",
+    "summary": "Wire transfer timeout errors during peak hours",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Wire transfer requests are timing out during peak business hours (10am-2pm). The transaction gateway returns HTTP 504 after 30 seconds. Affects domestic and international wires. Volume during peak is approximately 5,000 transactions/hour. The issue started after the last deployment of the payment orchestration service v3.2.1."
+  },
+  {
+    "key": "SCRUM-5",
+    "summary": "SWIFT payment processing timeout under heavy load",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "International wire transfers via SWIFT are failing with timeout errors when transaction volume is high. The SWIFT message queue backs up and the processing service cannot keep pace. Customers report failed transfers particularly to European and Asian corridors. Error logs show connection pool exhaustion on the SWIFT gateway adapter."
+  },
+  {
+    "key": "SCRUM-6",
+    "summary": "International wire transfers failing with timeout at high traffic",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "International wire transfers are failing intermittently with timeout at periods of high traffic volume. Customers report that transfers to non-domestic accounts take over 60 seconds and then fail. The issue correlates with trading hours overlap between US and European markets. Retry mechanism is not functioning properly."
+  },
+  {
+    "key": "SCRUM-7",
+    "summary": "AML report generation takes over 30 minutes",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "The daily AML (Anti-Money Laundering) report generation process takes over 30 minutes to complete. The compliance team needs these reports within 5 minutes of market close. The query scans the entire transaction ledger without proper indexing. This is a regulatory compliance risk as delayed reports could result in fines."
+  },
+  {
+    "key": "SCRUM-8",
+    "summary": "Anti-money laundering daily reports are extremely slow",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Anti-money laundering daily reports are extremely slow to generate. The compliance dashboard shows \"processing\" for 25-40 minutes. The report engine is doing full table scans on the transactions database instead of using the date-partitioned indexes. This is blocking the compliance officers from meeting their regulatory SLA."
+  },
+  {
+    "key": "SCRUM-9",
+    "summary": "Compliance report generation performance degradation",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Compliance report generation has severe performance degradation. Reports that used to complete in under 2 minutes now take 30+ minutes. This affects all regulatory reports including AML, CTR, and SAR reports. The issue seems correlated with the growth in transaction volume after onboarding 3 new institutional clients last quarter."
+  },
+  {
+    "key": "SCRUM-10",
+    "summary": "Third-party payment gateway returning 503 errors intermittently",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "The third-party payment gateway (Stripe/Adyen integration) intermittently returns HTTP 503 Service Unavailable errors. This affects approximately 3% of all card transactions. No clear pattern â€” happens across all card types and merchant categories. Gateway support says the issue is on our side due to malformed headers in the API request."
+  },
+  {
+    "key": "SCRUM-11",
+    "summary": "Payment gateway integration sporadic service unavailable errors",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Payment gateway integration experiences sporadic \"service unavailable\" errors. Card payment processing fails randomly with no discernible pattern. The error rate is around 2-4% of total transactions. Customers are complaining about failed debit card purchases at POS terminals. Need to investigate whether the issue is in our API client library or the gateway itself."
+  },
+  {
+    "key": "SCRUM-12",
+    "summary": "Account balance not refreshing in real-time on dashboard",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Account balance displayed on the customer dashboard is not refreshing in real-time. After a transaction, users have to manually refresh the page to see the updated balance. The WebSocket connection for real-time updates appears to be dropping silently. This causes confusion and generates support calls from customers who think their transaction didn't go through."
+  },
+  {
+    "key": "SCRUM-13",
+    "summary": "Dashboard shows stale balance data - not updating automatically",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "The online banking dashboard shows stale balance data and does not update automatically after deposits or withdrawals. Customers report seeing yesterday's balance even after making transactions today. The polling mechanism seems broken â€” the frontend is not fetching updated data from the account service API. Multiple customer complaints received."
+  },
+  {
+    "key": "SCRUM-14",
+    "summary": "Credit score calculation module needs FICO Score 10 update",
+    "issuetype": "Story",
+    "status": "To Do",
+    "priority": "",
+    "description": "The credit score calculation module currently uses FICO Score 8 algorithm. We need to upgrade to FICO Score 10 to meet new regulatory requirements and provide more accurate risk assessments. This involves updating the scoring engine, recalibrating thresholds, and retraining the underwriting team."
+  },
+  {
+    "key": "SCRUM-15",
+    "summary": "Database connection pool exhaustion during batch processing",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Database connection pool is getting exhausted during nightly batch processing jobs (statement generation, interest calculation, fee posting). The pool is configured for 100 connections but batch jobs open connections without releasing them properly. This causes the online banking platform to become unresponsive between 1am-3am during batch runs."
+  },
+  {
+    "key": "SCRUM-16",
+    "summary": "Missing audit trail for admin privilege escalation",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "There is no audit trail recorded when an administrator escalates their privileges in the banking admin portal. SOX compliance requires all privilege changes to be logged with timestamp, user ID, justification, and approval chain. Currently, admins can grant themselves elevated access without any record. This is a critical audit finding."
+  },
+  {
+    "key": "SCRUM-17",
+    "summary": "KYC document upload fails for files larger than 5MB",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "KYC (Know Your Customer) document upload functionality fails when customers try to upload identity documents larger than 5MB. The API returns a generic 500 error instead of a proper file size validation message. Most passport scans and utility bills are 6-10MB. Customers are unable to complete onboarding without calling support for manual processing."
+  },
+  {
+    "key": "SCRUM-18",
+    "summary": "Two-factor authentication SMS delivery delayed by 10+ minutes",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Two-factor authentication SMS codes are being delivered with a 10+ minute delay. Customers attempting to approve high-value transactions or login from new devices are stuck waiting. The SMS provider API shows successful delivery on their end, suggesting a carrier-level delay. OTP codes expire after 5 minutes, making them useless by the time they arrive."
+  },
+  {
+    "key": "SCRUM-19",
+    "summary": "Implement real-time fraud detection for contactless card payments",
+    "issuetype": "Story",
+    "status": "To Do",
+    "priority": "",
+    "description": "We need to implement real-time fraud detection capabilities for contactless card payments (NFC/tap-to-pay). Currently, fraud checks only run in batch mode overnight. With contactless transactions growing 40% YoY, we need sub-second fraud scoring at the point of sale. Should integrate with our existing rules engine and add ML-based anomaly detection."
+  },
+  {
+    "key": "SCRUM-20",
+    "summary": "Add ML-based fraud scoring for tap-to-pay transactions",
+    "issuetype": "Story",
+    "status": "To Do",
+    "priority": "",
+    "description": "Add an ML-based fraud scoring system for tap-to-pay transactions. The current rule-based system has a 12% false positive rate on contactless payments, blocking legitimate customers. We need a machine learning model trained on historical transaction data to reduce false positives while maintaining fraud catch rate. Should support real-time inference under 200ms latency."
+  },
+  {
+    "key": "SCRUM-21",
+    "summary": "Loan approval workflow stuck in pending state for 48+ hours",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Loan approval workflows are getting stuck in \"pending\" state for over 48 hours without progressing. The automated decision engine is not triggering the next step after credit check completion. Loan officers have to manually push applications through. Affecting personal loans, auto loans, and credit line increases. Backlog of 300+ pending applications."
+  },
+  {
+    "key": "SCRUM-22",
+    "summary": "Mortgage application processing pipeline hangs indefinitely",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "The mortgage application processing pipeline hangs indefinitely after the document verification step. Applications submitted through the online portal never reach the underwriting queue. The message broker between the document service and the underwriting service appears to have a dead letter queue issue. Over 150 mortgage applications are stuck this month."
+  },
+  {
+    "key": "SCRUM-23",
+    "summary": "User sessions expiring prematurely during online banking",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "User sessions are expiring prematurely during active online banking usage. Customers report being logged out after only 2-3 minutes of activity, despite the session timeout being configured for 15 minutes. The issue is intermittent and affects approximately 20% of sessions. Session cookies appear to be losing their refresh token mid-session."
+  },
+  {
+    "key": "SCRUM-24",
+    "summary": "Customers getting logged out randomly while using internet banking",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Customers are getting logged out randomly while actively using internet banking. They lose unsaved data in forms (e.g., beneficiary setup, transfer details). The issue seems related to load balancer session affinity â€” when traffic is routed to a different backend server, the session is not recognized. Very frustrating UX, high volume of complaints."
+  },
+  {
+    "key": "SCRUM-25",
+    "summary": "Migrate legacy COBOL batch jobs to microservices architecture",
+    "issuetype": "Task",
+    "status": "To Do",
+    "priority": "",
+    "description": "Plan and execute migration of legacy COBOL batch processing jobs to a modern microservices architecture. Current nightly batch (account reconciliation, interest posting, statement generation) runs on a 20-year-old mainframe. Need to decompose into event-driven microservices while maintaining ACID compliance for financial transactions."
+  },
+  {
+    "key": "SCRUM-26",
+    "summary": "Enable recurring payment setup from mobile banking app",
+    "issuetype": "Story",
+    "status": "To Do",
+    "priority": "",
+    "description": "As a customer, I want to set up and manage recurring payments (standing orders, direct debits) directly from the mobile banking app. Currently this feature is only available through the web portal. Need to support weekly, bi-weekly, monthly, and custom frequency schedules with the ability to set end dates or number of occurrences."
+  },
+  {
+    "key": "SCRUM-27",
+    "summary": "Currency conversion rates not updating for forex transactions",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Foreign exchange rates displayed in the currency conversion module are not updating. The FX rate feed from Reuters/Bloomberg is stale â€” showing rates from 2+ hours ago. This causes customers to execute forex transactions at incorrect rates, leading to disputes and potential financial loss. The rate refresh cron job seems to have stopped running."
+  },
+  {
+    "key": "SCRUM-28",
+    "summary": "Implement PSD2 Strong Customer Authentication compliance",
+    "issuetype": "Task",
+    "status": "To Do",
+    "priority": "",
+    "description": "Implement PSD2 (Payment Services Directive 2) Strong Customer Authentication requirements across all payment flows. Need to add dynamic linking for transaction amounts, implement 90-day re-authentication, and ensure all third-party payment initiators go through proper SCA challenges. Deadline: Q3 regulatory audit."
+  },
+  {
+    "key": "SCRUM-29",
+    "summary": "Account statement PDF generation produces corrupted files",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Account statement PDF generation is producing corrupted files. Customers downloading their monthly statements get files that cannot be opened in any PDF reader. The issue affects statements for accounts with more than 500 transactions in the period. Smaller statements generate correctly. Likely a memory overflow in the PDF rendering engine."
+  },
+  {
+    "key": "SCRUM-30",
+    "summary": "Integrate Open Banking API for third-party fintech partners",
+    "issuetype": "Story",
+    "status": "To Do",
+    "priority": "",
+    "description": "Build Open Banking API endpoints to allow authorized third-party fintech partners to access customer account data (with consent). Must comply with PSD2 and Open Banking UK standards. Includes account information services (AIS), payment initiation services (PIS), and consent management. Need developer portal with sandbox environment."
+  },
+  {
+    "key": "SCRUM-31",
+    "summary": "Scheduled maintenance window notifications not sent to customers",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Customers are not receiving scheduled maintenance window notifications via email or push notifications. The last three planned outages had zero advance notice sent to customers, resulting in surprise downtime and a flood of support calls. The notification scheduler service appears to be silently failing without logging errors."
+  },
+  {
+    "key": "SCRUM-32",
+    "summary": "Upgrade TLS certificates to TLS 1.3 across all banking endpoints",
+    "issuetype": "Task",
+    "status": "To Do",
+    "priority": "",
+    "description": "Upgrade all banking platform endpoints from TLS 1.2 to TLS 1.3. PCI DSS compliance requires the latest encryption standards. Need to update load balancers, API gateways, and internal service mesh certificates. Must coordinate with all third-party integrations (payment processors, credit bureaus, core banking) to ensure compatibility."
+  },
+  {
+    "key": "SCRUM-33",
+    "summary": "Duplicate transaction entries appearing in account history",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Some customers are seeing duplicate transaction entries in their account history. A single debit card purchase appears twice in the transaction list with the same amount, timestamp, and merchant. The core banking ledger shows only one entry, so this appears to be a presentation layer bug in the account history API. Causing significant customer confusion and panic."
+  },
+  {
+    "key": "SCRUM-34",
+    "summary": "Enable biometric authentication for high-value transfers",
+    "issuetype": "Story",
+    "status": "To Do",
+    "priority": "",
+    "description": "As a customer, I want to use biometric authentication (fingerprint, Face ID) to approve high-value transfers instead of entering OTP codes. Currently biometrics only work for login. Need to extend biometric auth to cover transfers above 1,000 EUR, beneficiary additions, and standing order modifications. Must comply with PSD2 SCA requirements."
+  },
+  {
+    "key": "SCRUM-35",
+    "summary": "Interest calculation rounding errors on savings accounts",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Interest calculation on savings accounts has rounding errors that result in discrepancies of 0.01-0.03 EUR per account per month. While individually small, across 2 million savings accounts this adds up to significant cumulative error. The issue is in the compound interest formula using floating point arithmetic instead of fixed-point decimal. Regulatory auditors flagged this."
+  },
+  {
+    "key": "SCRUM-36",
+    "summary": "Implement data masking for PII in non-production environments",
+    "issuetype": "Task",
+    "status": "To Do",
+    "priority": "",
+    "description": "Implement comprehensive data masking for all personally identifiable information (PII) in non-production environments (dev, staging, QA). Currently developers can see real customer names, addresses, account numbers, and transaction data in test environments. Need to mask SSN, account numbers, names, addresses, and phone numbers while preserving data format for testing."
+  },
+  {
+    "key": "SCRUM-37",
+    "summary": "Mobile check deposit image processing fails on Android 14",
+    "issuetype": "Bug",
+    "status": "To Do",
+    "priority": "",
+    "description": "Mobile check deposit functionality fails specifically on Android 14 devices. The camera capture module crashes when attempting to photograph the check. Works fine on Android 13 and below, and all iOS versions. The image processing library (OpenCV) may have a compatibility issue with Android 14's new camera API. Affects approximately 30% of our Android user base."
+  },
+  {
+    "key": "SCRUM-38",
+    "summary": "Add real-time push notifications for all account activities",
+    "issuetype": "Story",
+    "status": "To Do",
+    "priority": "",
+    "description": "As a customer, I want to receive real-time push notifications for all account activities including deposits, withdrawals, card transactions, login attempts, and balance threshold alerts. Currently only large transactions trigger notifications. Need configurable notification preferences per account and per channel (push, SMS, email)."
+  }
+]

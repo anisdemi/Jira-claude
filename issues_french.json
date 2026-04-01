@@ -1,0 +1,230 @@
+[
+  {
+    "key": "SCRUM-1",
+    "summary": "Impossible de se connecter à l'application mobile bancaire après réinitialisation du mot de passe",
+    "issuetype": "Bug",
+    "description": "Après avoir réinitialisé leur mot de passe via le flux de récupération, les utilisateurs ne peuvent plus se connecter à l'application mobile bancaire. Ils reçoivent une erreur « Identifiants invalides » alors que le mot de passe vient d'être changé. Affecte iOS et Android. Environ 150 utilisateurs impactés quotidiennement."
+  },
+  {
+    "key": "SCRUM-2",
+    "summary": "Échec de connexion sur l'application mobile après changement de mot de passe",
+    "issuetype": "Bug",
+    "description": "La connexion à l'application mobile échoue systématiquement lorsqu'un utilisateur vient de changer son mot de passe. Les nouveaux identifiants ne sont pas reconnus. Le code erreur AUTH-401 est renvoyé. Les tickets de support augmentent — plus de 200 plaintes cette semaine. Solution de contournement : les utilisateurs doivent attendre 15 à 20 minutes avant que le nouveau mot de passe fonctionne."
+  },
+  {
+    "key": "SCRUM-3",
+    "summary": "Erreur d'authentification lors de l'accès à la banque mobile après mise à jour du mot de passe",
+    "issuetype": "Bug",
+    "description": "Une erreur d'authentification se produit lorsque les clients tentent d'accéder à la plateforme bancaire mobile après avoir mis à jour leur mot de passe. Le jeton de session de l'ancien mot de passe n'est pas correctement invalidé, provoquant un conflit avec les nouveaux identifiants. Il semble s'agir d'un problème de synchronisation du cache entre le service d'authentification et la passerelle API mobile."
+  },
+  {
+    "key": "SCRUM-4",
+    "summary": "Erreurs de délai d'attente des virements bancaires aux heures de pointe",
+    "issuetype": "Bug",
+    "description": "Les demandes de virement bancaire expirent pendant les heures de pointe (10h-14h). La passerelle de transaction renvoie une erreur HTTP 504 après 30 secondes. Affecte les virements nationaux et internationaux. Le volume aux heures de pointe est d'environ 5 000 transactions/heure. Le problème a commencé après le dernier déploiement du service d'orchestration des paiements v3.2.1."
+  },
+  {
+    "key": "SCRUM-5",
+    "summary": "Délai d'attente du traitement des paiements SWIFT en cas de forte charge",
+    "issuetype": "Bug",
+    "description": "Les virements internationaux via SWIFT échouent avec des erreurs de délai d'attente lorsque le volume de transactions est élevé. La file d'attente des messages SWIFT se remplit et le service de traitement ne peut pas suivre le rythme. Les clients signalent des transferts échoués notamment vers les corridors européens et asiatiques. Les journaux d'erreurs montrent un épuisement du pool de connexions sur l'adaptateur de passerelle SWIFT."
+  },
+  {
+    "key": "SCRUM-6",
+    "summary": "Échec des virements internationaux avec délai d'attente en période de fort trafic",
+    "issuetype": "Bug",
+    "description": "Les virements internationaux échouent de manière intermittente avec un délai d'attente en période de fort volume de trafic. Les clients signalent que les transferts vers des comptes non domestiques prennent plus de 60 secondes puis échouent. Le problème est corrélé au chevauchement des heures de trading entre les marchés américain et européen. Le mécanisme de réessai ne fonctionne pas correctement."
+  },
+  {
+    "key": "SCRUM-7",
+    "summary": "La génération du rapport LCB-FT prend plus de 30 minutes",
+    "issuetype": "Bug",
+    "description": "Le processus de génération quotidien du rapport LCB-FT (Lutte Contre le Blanchiment et le Financement du Terrorisme) prend plus de 30 minutes. L'équipe de conformité a besoin de ces rapports dans les 5 minutes suivant la clôture du marché. La requête parcourt l'intégralité du registre des transactions sans indexation appropriée. C'est un risque de conformité réglementaire car des rapports retardés pourraient entraîner des amendes."
+  },
+  {
+    "key": "SCRUM-8",
+    "summary": "Les rapports quotidiens anti-blanchiment sont extrêmement lents",
+    "issuetype": "Bug",
+    "description": "Les rapports quotidiens LCB-FT prennent entre 25 et 40 minutes au lieu des 5 minutes attendues. Les requêtes de base de données effectuent des parcours complets de table au lieu d'utiliser les index partitionnés par date. L'équipe de conformité ne peut pas respecter les délais réglementaires de soumission. Des index existent sur le registre des transactions mais ne sont pas utilisés par le planificateur de requêtes."
+  },
+  {
+    "key": "SCRUM-9",
+    "summary": "Dégradation des performances de génération des rapports de conformité",
+    "issuetype": "Bug",
+    "description": "La génération de tous les rapports réglementaires (LCB-FT, CTR, SAR) a subi une dégradation significative des performances au cours des deux derniers mois. Les rapports qui prenaient auparavant 3 à 5 minutes prennent maintenant 25 à 40 minutes. La dégradation est corrélée à l'augmentation du volume de transactions depuis l'intégration de 3 nouveaux clients institutionnels. Le registre des transactions a augmenté de 300 % en volume."
+  },
+  {
+    "key": "SCRUM-10",
+    "summary": "La passerelle de paiement tierce renvoie des erreurs 503 de manière intermittente",
+    "issuetype": "Bug",
+    "description": "L'intégration de la passerelle de paiement tierce (Stripe/Adyen) renvoie des erreurs HTTP 503 Service indisponible de manière intermittente. Environ 2 à 4 % des transactions par carte sont affectées. Aucun schéma identifiable — cela se produit à tout moment de la journée avec des volumes variés. Le fournisseur de la passerelle attribue le problème à des en-têtes mal formés dans nos requêtes API."
+  },
+  {
+    "key": "SCRUM-11",
+    "summary": "Erreurs sporadiques de service indisponible de l'intégration de la passerelle de paiement",
+    "issuetype": "Bug",
+    "description": "L'intégration de la passerelle de paiement rencontre des erreurs sporadiques de service indisponible affectant le traitement des paiements par carte. Les transactions échouent de manière aléatoire sans schéma clair. Impacte les achats par carte de débit en point de vente. Le taux d'erreur se situe entre 2 et 4 % des transactions. Pas de corrélation avec l'heure de la journée ou le volume de transactions."
+  },
+  {
+    "key": "SCRUM-12",
+    "summary": "Le solde du compte ne se rafraîchit pas en temps réel sur le tableau de bord",
+    "issuetype": "Bug",
+    "description": "Le tableau de bord bancaire en ligne n'actualise pas automatiquement les soldes des comptes après les transactions. Les clients doivent rafraîchir manuellement la page pour voir les soldes mis à jour. La connexion WebSocket se coupe silencieusement après quelques minutes. Les clients pensent que les transactions ont échoué et appellent le support."
+  },
+  {
+    "key": "SCRUM-13",
+    "summary": "Le tableau de bord affiche des données de solde obsolètes — pas de mise à jour automatique",
+    "issuetype": "Bug",
+    "description": "Le tableau de bord client affiche des données de solde obsolètes qui ne se mettent pas à jour automatiquement après les transactions. Le mécanisme de polling du frontend ne récupère pas les données mises à jour depuis l'API du service de comptes. Les clients signalent voir des soldes datant de plusieurs heures. Provoque de la confusion et un volume élevé d'appels au support."
+  },
+  {
+    "key": "SCRUM-14",
+    "summary": "Le module de calcul du score de crédit nécessite la mise à jour vers FICO Score 10",
+    "issuetype": "Story",
+    "description": "Le moteur de scoring de crédit utilise actuellement l'algorithme FICO Score 8. Nécessite une mise à niveau vers FICO Score 10 qui intègre les données de tendance pour une évaluation plus précise des risques. Le nouveau modèle doit être calibré avec les données historiques de notre portefeuille. L'équipe de souscription a besoin d'une formation sur les nouvelles plages de scores et les facteurs d'influence."
+  },
+  {
+    "key": "SCRUM-15",
+    "summary": "Épuisement du pool de connexions à la base de données pendant le traitement par lots",
+    "issuetype": "Bug",
+    "description": "Les tâches de traitement par lots nocturnes épuisent le pool de connexions à la base de données, provoquant des échecs en cascade dans d'autres services. Le pool de connexions atteint sa limite maximale de 200 connexions pendant le rapprochement en fin de journée. Les connexions ne sont pas correctement libérées après l'achèvement du traitement par lots. Affecte les systèmes bancaires en ligne entre 2h et 4h du matin."
+  },
+  {
+    "key": "SCRUM-16",
+    "summary": "Piste d'audit manquante pour l'élévation de privilèges administrateur",
+    "issuetype": "Bug",
+    "description": "Il n'y a pas de piste d'audit pour les événements d'élévation de privilèges administrateur. Les modifications des rôles d'accès des utilisateurs ne sont pas journalisées dans le système d'audit de conformité. C'est une constatation critique de l'audit SOX. Besoin de suivre qui a élevé les privilèges, quand, et la justification. Les exigences réglementaires imposent une journalisation complète de toutes les modifications de contrôle d'accès."
+  },
+  {
+    "key": "SCRUM-17",
+    "summary": "Le téléchargement de documents KYC échoue pour les fichiers supérieurs à 5 Mo",
+    "issuetype": "Bug",
+    "description": "Les clients ne peuvent pas télécharger de documents KYC (Connaissance du Client) dépassant 5 Mo. Le système renvoie une erreur serveur générique 500 au lieu d'un message significatif. De nombreux documents d'identité (passeports, permis de conduire scannés) dépassent cette limite. Bloque le processus d'intégration des nouveaux clients. La limite devrait être d'au moins 15 Mo."
+  },
+  {
+    "key": "SCRUM-18",
+    "summary": "Livraison du SMS d'authentification à deux facteurs retardée de plus de 10 minutes",
+    "issuetype": "Bug",
+    "description": "Les codes OTP par SMS pour l'authentification à deux facteurs sont délivrés avec un retard de 10 à 15 minutes. Les codes expirent avant que les clients ne les reçoivent. Affecte les connexions, les approbations de transactions et les réinitialisations de mot de passe. Les clients sont bloqués hors de leurs comptes. Le problème semble être au niveau de l'opérateur téléphonique mais notre fenêtre de validité OTP de 2 minutes est trop courte."
+  },
+  {
+    "key": "SCRUM-19",
+    "summary": "Implémenter la détection de fraude en temps réel pour les paiements sans contact",
+    "issuetype": "Story",
+    "description": "Actuellement, la détection de fraude pour les transactions par carte sans contact fonctionne en mode batch avec un délai de 24 heures. Besoin de passer à un scoring de fraude en temps réel avec un temps de réponse inférieur à la seconde au point de vente. Intégration requise avec le moteur de règles existant et ajout d'un modèle ML de détection d'anomalies. Doit traiter plus de 10 000 transactions par minute aux heures de pointe."
+  },
+  {
+    "key": "SCRUM-20",
+    "summary": "Ajouter un scoring de fraude basé sur le ML pour les transactions sans contact",
+    "issuetype": "Story",
+    "description": "Le système actuel basé sur les règles pour la détection de fraude sur les paiements sans contact a un taux de faux positifs de 12 %, entraînant le blocage inutile des cartes de clients légitimes. Besoin d'implémenter un modèle de scoring basé sur l'apprentissage automatique entraîné sur les données de transactions historiques. Le modèle doit fonctionner avec une latence d'inférence inférieure à 200 ms. Doit s'intégrer au pipeline de décision de fraude existant."
+  },
+  {
+    "key": "SCRUM-21",
+    "summary": "Le workflow d'approbation de prêt est bloqué en état d'attente depuis plus de 48 heures",
+    "issuetype": "Bug",
+    "description": "Les workflows d'approbation de prêt restent bloqués en état « en attente » pendant plus de 48 heures. Le moteur de décision automatisé ne déclenche pas l'étape suivante après la vérification du crédit. Affecte les prêts personnels, les prêts automobiles et les lignes de crédit. Plus de 300 demandes sont en retard. Nécessite une intervention manuelle pour pousser les demandes à travers le pipeline."
+  },
+  {
+    "key": "SCRUM-22",
+    "summary": "Le pipeline de traitement des demandes de prêt hypothécaire se bloque indéfiniment",
+    "issuetype": "Bug",
+    "description": "Les demandes de prêt hypothécaire se bloquent indéfiniment après l'étape de vérification des documents. Le pipeline de traitement ne progresse pas vers l'étape de souscription. Problème de file d'attente de lettres mortes dans le courtier de messages entre le service de documents et le service de souscription. Plus de 150 demandes hypothécaires sont bloquées en traitement. Les agents de crédit doivent manuellement pousser les demandes."
+  },
+  {
+    "key": "SCRUM-23",
+    "summary": "Les sessions utilisateur expirent prématurément pendant la banque en ligne",
+    "issuetype": "Bug",
+    "description": "Les sessions utilisateur expirent après seulement 2 à 3 minutes d'utilisation active au lieu de la durée configurée de 15 minutes. Le jeton de rafraîchissement est perdu en cours de session. Affecte environ 20 % des sessions bancaires en ligne. Les clients perdent leur travail en cours (formulaires de virement, paiements de factures). Provoque une frustration significative et un abandon."
+  },
+  {
+    "key": "SCRUM-24",
+    "summary": "Les clients sont déconnectés de manière aléatoire en utilisant la banque en ligne",
+    "issuetype": "Bug",
+    "description": "Les clients signalent des déconnexions aléatoires pendant l'utilisation active de la banque en ligne. Les sessions se terminent brusquement sans avertissement, entraînant la perte des données dans les formulaires partiellement remplis. Le problème semble être lié à l'affinité de session du répartiteur de charge — lorsque le trafic est routé vers un serveur backend différent, la session n'est pas reconnue."
+  },
+  {
+    "key": "SCRUM-25",
+    "summary": "Migrer les traitements batch COBOL hérités vers une architecture microservices",
+    "issuetype": "Task",
+    "description": "Les traitements batch COBOL hérités du mainframe doivent être migrés vers une architecture microservices moderne. Cela comprend le rapprochement en fin de journée, le calcul des intérêts, la génération des relevés et les rapports réglementaires. La migration doit maintenir la conformité ACID et assurer zéro temps d'arrêt pendant la transition. Prévoir de fonctionner en parallèle pendant 6 mois."
+  },
+  {
+    "key": "SCRUM-26",
+    "summary": "Activer la configuration des paiements récurrents depuis l'application mobile",
+    "issuetype": "Story",
+    "description": "Les clients doivent pouvoir configurer des paiements récurrents (ordres permanents, prélèvements automatiques) directement depuis l'application mobile bancaire. Actuellement disponible uniquement via la banque en ligne. Besoin de supporter les fréquences hebdomadaire, bimensuelle, mensuelle et personnalisée. Doit inclure la gestion des plannings de paiement et les notifications de prochaine exécution."
+  },
+  {
+    "key": "SCRUM-27",
+    "summary": "Les taux de conversion de devises ne se mettent pas à jour pour les transactions forex",
+    "issuetype": "Bug",
+    "description": "Les taux de change pour les transactions en devises étrangères ne sont pas mis à jour en temps réel. Les clients effectuent des opérations de change avec des taux obsolètes. Le flux de données des taux Reuters/Bloomberg est interrompu depuis le dernier redémarrage du serveur. La tâche cron de rafraîchissement des taux ne s'exécute plus. Risque de perte financière significative due au décalage des taux."
+  },
+  {
+    "key": "SCRUM-28",
+    "summary": "Implémenter la conformité à l'authentification forte du client DSP2",
+    "issuetype": "Task",
+    "description": "Implémenter les exigences d'authentification forte du client (SCA) de la DSP2 pour tous les flux de paiement. Inclut la liaison dynamique pour les montants de transaction, la ré-authentification tous les 90 jours et les challenges SCA pour les initiateurs de paiement tiers. Doit être terminé avant la date limite de l'audit réglementaire du T3."
+  },
+  {
+    "key": "SCRUM-29",
+    "summary": "La génération de relevés de compte en PDF produit des fichiers corrompus",
+    "issuetype": "Bug",
+    "description": "Le moteur de rendu PDF pour les relevés de compte produit des fichiers corrompus pour les comptes avec plus de 500 transactions par période de relevé. Le processus de génération manque de mémoire et tronque la sortie. Les clients téléchargent des PDF vides ou partiellement rendus. Affecte les comptes professionnels et les clients à fort volume de transactions."
+  },
+  {
+    "key": "SCRUM-30",
+    "summary": "Intégrer l'API Open Banking pour les partenaires fintech tiers",
+    "issuetype": "Story",
+    "description": "Construire des points d'accès API conformes DSP2/Open Banking pour les services d'information sur les comptes (AIS) et les services d'initiation de paiement (PIS). Implémenter la gestion du consentement basée sur OAuth2. Fournir un portail développeur avec un environnement sandbox pour les tests d'intégration des partenaires. Doit être conforme aux standards Open Banking."
+  },
+  {
+    "key": "SCRUM-31",
+    "summary": "Les notifications de fenêtre de maintenance planifiée ne sont pas envoyées aux clients",
+    "issuetype": "Bug",
+    "description": "Les clients ne reçoivent pas les notifications de maintenance planifiée. Le service de planification des notifications échoue silencieusement sans journalisation. Les clients découvrent les temps d'arrêt uniquement lorsqu'ils ne peuvent pas accéder aux services. La dernière fenêtre de maintenance a provoqué plus de 500 appels au support de clients non prévenus."
+  },
+  {
+    "key": "SCRUM-32",
+    "summary": "Mettre à niveau les certificats TLS vers TLS 1.3 sur tous les points d'accès bancaires",
+    "issuetype": "Task",
+    "description": "Tous les points d'accès bancaires utilisent actuellement TLS 1.2 et doivent être mis à niveau vers TLS 1.3 pour une sécurité renforcée et de meilleures performances. Inclut les répartiteurs de charge, les passerelles API, la communication inter-services et les connexions aux partenaires externes. Nécessite une coordination avec les intégrations tierces pour les tests de compatibilité."
+  },
+  {
+    "key": "SCRUM-33",
+    "summary": "Des entrées de transactions en double apparaissent dans l'historique du compte",
+    "issuetype": "Bug",
+    "description": "Les clients signalent voir des entrées de transactions en double dans leur historique de compte. La couche de données sous-jacente montre des entrées uniques mais la couche de présentation affiche des doublons. Affecte à la fois la banque en ligne et l'application mobile. Provoque de la confusion quant aux soldes réels et génère des appels au support."
+  },
+  {
+    "key": "SCRUM-34",
+    "summary": "Activer l'authentification biométrique pour les virements de montant élevé",
+    "issuetype": "Story",
+    "description": "Étendre le cadre d'authentification biométrique existant (empreinte digitale, Face ID) pour couvrir les virements de montant élevé, les ajouts de bénéficiaires et les modifications d'ordres permanents. Actuellement, la biométrie n'est utilisée que pour la connexion. Doit être conforme aux exigences SCA de la DSP2 pour la biométrie comme facteur d'authentification valide."
+  },
+  {
+    "key": "SCRUM-35",
+    "summary": "Erreurs d'arrondi dans le calcul des intérêts sur les comptes d'épargne",
+    "issuetype": "Bug",
+    "description": "La formule de calcul des intérêts composés produit des erreurs d'arrondi dues à l'arithmétique en virgule flottante. Les écarts sont faibles par transaction mais s'accumulent sur 2 millions de comptes d'épargne. L'audit a identifié des écarts de plus de 50 000 € au total. Doit passer à l'arithmétique décimale à virgule fixe pour les calculs financiers."
+  },
+  {
+    "key": "SCRUM-36",
+    "summary": "Implémenter le masquage des données personnelles dans les environnements hors production",
+    "issuetype": "Task",
+    "description": "Les environnements de développement, staging et QA contiennent actuellement des données clients non masquées. Besoin d'implémenter un masquage des données préservant le format pour tous les champs de données personnelles : numéros de sécurité sociale, numéros de compte, noms, adresses, numéros de téléphone. Le masquage doit maintenir l'intégrité référentielle entre les tables."
+  },
+  {
+    "key": "SCRUM-37",
+    "summary": "Le traitement d'image du dépôt de chèque mobile échoue sur Android 14",
+    "issuetype": "Bug",
+    "description": "Le module de traitement d'image pour le dépôt de chèque mobile plante sur les appareils Android 14. La bibliothèque de capture de caméra OpenCV est incompatible avec la nouvelle API caméra d'Android 14. Affecte environ 30 % des utilisateurs Android. Les chèques ne peuvent pas être capturés ni traités. Nécessite la mise à jour vers la dernière version de la bibliothèque de capture."
+  },
+  {
+    "key": "SCRUM-38",
+    "summary": "Ajouter des notifications push en temps réel pour toutes les activités du compte",
+    "issuetype": "Story",
+    "description": "En tant que client, je souhaite recevoir des notifications push en temps réel pour toutes les activités du compte, y compris les dépôts, les retraits, les transactions par carte, les tentatives de connexion et les alertes de seuil de solde. Actuellement, seules les transactions importantes déclenchent des notifications. Besoin de préférences de notification configurables par compte et par canal (push, SMS, e-mail)."
+  }
+]

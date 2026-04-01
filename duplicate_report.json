@@ -2,385 +2,385 @@
   "analysis_summary": {
     "total_issues_analyzed": 38,
     "duplicate_groups_found": 8,
-    "total_duplicate_issues": 18,
-    "unique_issues": 20
+    "total_duplicate_issues": 21,
+    "unique_issues": 17
   },
   "duplicate_groups": [
     {
       "group_id": 1,
-      "theme": "Mobile login fails after password reset",
+      "theme": "Échec de connexion mobile après changement/réinitialisation de mot de passe",
       "confidence": "HIGH",
       "issues": [
         {
-          "key": "SCRUM-1",
-          "summary": "Users unable to login to mobile banking app after password reset"
+          "key": "SCRUM-39",
+          "summary": "Impossible de se connecter à l'application mobile bancaire après réinitialisation du mot de passe"
         },
         {
-          "key": "SCRUM-2",
-          "summary": "Mobile app login fails after changing password"
+          "key": "SCRUM-40",
+          "summary": "Échec de connexion sur l'application mobile après changement de mot de passe"
         },
         {
-          "key": "SCRUM-3",
-          "summary": "Authentication error when accessing mobile banking post password update"
+          "key": "SCRUM-41",
+          "summary": "Erreur d'authentification lors de l'accès à la banque mobile après mise à jour du mot de passe"
         }
       ],
-      "similarity_explanation": "All three issues describe the identical problem: users cannot log into the mobile banking app after resetting/changing their password. SCRUM-1 reports the symptom (Invalid credentials error, 150 users/day). SCRUM-2 adds the error code AUTH-401, complaint volume (200/week), and the 15-20 minute workaround delay. SCRUM-3 identifies the root cause — stale session tokens and cache synchronization between the auth service and mobile API gateway. Together they paint a complete picture of one bug.",
-      "recommended_primary": "SCRUM-3",
-      "recommended_action": "Keep SCRUM-3 as the primary issue since it identifies the root cause (cache sync issue). Link SCRUM-1 and SCRUM-2 as duplicates. Merge the quantitative impact data (150 users/day, 200 complaints/week, AUTH-401 error code) into SCRUM-3's description.",
+      "similarity_explanation": "Les trois tickets décrivent exactement le même problème : les utilisateurs ne peuvent pas se connecter à l'application mobile après avoir changé ou réinitialisé leur mot de passe. SCRUM-39 décrit le symptôme (erreur « Identifiants invalides »), SCRUM-40 ajoute le code erreur AUTH-401 et un contournement (attendre 15-20 min), et SCRUM-41 identifie la cause racine probable (synchronisation du cache entre le service d'authentification et la passerelle API mobile, avec l'ancien jeton de session non invalidé). Ce sont trois signalements du même bug avec des niveaux de détail croissants.",
+      "recommended_primary": "SCRUM-41",
+      "recommended_action": "Conserver SCRUM-41 comme ticket principal car il identifie la cause racine (problème de synchronisation du cache). Fusionner les informations complémentaires de SCRUM-39 (150 utilisateurs/jour, iOS et Android) et SCRUM-40 (code AUTH-401, contournement 15-20 min, 200+ plaintes/semaine) dans la description de SCRUM-41. Fermer SCRUM-39 et SCRUM-40 comme doublons avec lien vers SCRUM-41.",
       "solution": {
-        "description": "Fix the cache synchronization between the authentication service and the mobile API gateway so that new credentials are recognized immediately after a password reset.",
+        "description": "Corriger la synchronisation du cache d'authentification entre le service d'identité et la passerelle API mobile lors du changement de mot de passe. S'assurer que l'ancien jeton de session est invalidé immédiatement et que le nouveau mot de passe est propagé au cache avant de confirmer le changement à l'utilisateur.",
         "priority": "HIGH",
         "complexity": "Medium",
-        "technical_details": "1. Investigate the caching layer between the auth service and mobile API gateway — likely a Redis or Memcached instance holding stale credential hashes. 2. On password reset, issue a cache invalidation event (pub/sub or direct purge) for the affected user's credential entry. 3. Ensure the old session token is explicitly revoked upon password change (add to a token blacklist or revoke in the OAuth provider). 4. Reduce or eliminate the credential cache TTL for recently-reset passwords. 5. Add a cache-aside pattern where the gateway falls through to the auth service DB on AUTH-401 for recently changed accounts. 6. Verify fix on both iOS and Android. The 15-20 minute workaround delay likely corresponds to the cache TTL — confirm and reduce."
+        "technical_details": "1. Identifier le mécanisme de cache (Redis/Memcached) entre le service d'authentification et la passerelle API mobile. 2. Implémenter une invalidation synchrone du cache lors du flux de changement de mot de passe — le endpoint de changement de mot de passe doit invalider toutes les sessions actives et purger l'entrée du cache AVANT de retourner un succès. 3. Ajouter un mécanisme de cache-aside ou write-through pour que les nouveaux identifiants soient immédiatement disponibles. 4. Invalider tous les refresh tokens existants lors du changement de mot de passe. 5. Ajouter un test d'intégration couvrant le scénario changement de mot de passe → connexion immédiate."
       }
     },
     {
       "group_id": 2,
-      "theme": "Wire transfer timeout under heavy load",
+      "theme": "Timeouts des virements bancaires en période de forte charge",
       "confidence": "HIGH",
       "issues": [
         {
-          "key": "SCRUM-4",
-          "summary": "Wire transfer timeout errors during peak hours"
+          "key": "SCRUM-42",
+          "summary": "Erreurs de délai d'attente des virements bancaires aux heures de pointe"
         },
         {
-          "key": "SCRUM-5",
-          "summary": "SWIFT payment processing timeout under heavy load"
+          "key": "SCRUM-43",
+          "summary": "Délai d'attente du traitement des paiements SWIFT en cas de forte charge"
         },
         {
-          "key": "SCRUM-6",
-          "summary": "International wire transfers failing with timeout at high traffic"
+          "key": "SCRUM-44",
+          "summary": "Échec des virements internationaux avec délai d'attente en période de fort trafic"
         }
       ],
-      "similarity_explanation": "All three describe wire transfer timeouts under high load. SCRUM-4 covers both domestic and international wires timing out at peak hours (504 after 30s, traced to payment orchestration service v3.2.1). SCRUM-5 specifically focuses on SWIFT international transfers with connection pool exhaustion on the SWIFT gateway adapter. SCRUM-6 describes international wire timeouts correlated with US-EU market overlap and a broken retry mechanism. While SCRUM-5 and SCRUM-6 are narrower (international only), the underlying root cause — the payment orchestration/gateway infrastructure cannot handle peak load — is the same, and the fix will address all three.",
-      "recommended_primary": "SCRUM-4",
-      "recommended_action": "Keep SCRUM-4 as the primary (broadest scope covering domestic + international). Link SCRUM-5 and SCRUM-6 as duplicates. Consolidate the SWIFT connection pool exhaustion detail from SCRUM-5 and the broken retry mechanism from SCRUM-6 into SCRUM-4.",
+      "similarity_explanation": "Les trois tickets décrivent des timeouts de virements bancaires sous forte charge. SCRUM-42 est le plus large (virements nationaux et internationaux, HTTP 504, lié au déploiement v3.2.1). SCRUM-43 se concentre sur SWIFT avec l'épuisement du pool de connexions de l'adaptateur SWIFT. SCRUM-44 décrit les mêmes virements internationaux échouant avec un mécanisme de réessai défaillant. SCRUM-43 et SCRUM-44 sont presque identiques (virements internationaux qui timeout en forte charge), et SCRUM-42 est le ticket parent qui couvre le même symptôme de manière plus large. La cause racine commune est le service d'orchestration des paiements v3.2.1 qui ne supporte pas la charge.",
+      "recommended_primary": "SCRUM-42",
+      "recommended_action": "Conserver SCRUM-42 comme ticket principal car il couvre le périmètre le plus large (national + international). Enrichir sa description avec les détails techniques de SCRUM-43 (épuisement du pool de connexions SWIFT, file de messages saturée) et SCRUM-44 (mécanisme de réessai défaillant, corrélation avec chevauchement marchés US/EU). Fermer SCRUM-43 et SCRUM-44 comme doublons.",
       "solution": {
-        "description": "Resolve connection pool exhaustion and timeout failures in the payment orchestration and SWIFT gateway services under peak load.",
+        "description": "Résoudre les problèmes de performance et de résilience du service d'orchestration des paiements v3.2.1 sous forte charge, incluant le pool de connexions SWIFT et le mécanisme de réessai.",
         "priority": "CRITICAL",
         "complexity": "Complex",
-        "technical_details": "1. Increase the SWIFT gateway adapter connection pool size and tune pool settings (max idle, connection timeout, eviction policy). 2. Investigate the payment orchestration service v3.2.1 deployment — diff against v3.2.0 for regressions (likely a connection handling or thread pool change). 3. Fix the broken retry mechanism: implement exponential backoff with jitter and circuit breaker pattern for downstream SWIFT calls. 4. Increase the HTTP timeout from 30s to an appropriate value or implement async processing with a callback/webhook for long-running transfers. 5. Add horizontal scaling (auto-scale pods) for the payment orchestration service during peak hours (10am-2pm). 6. Implement a queue-based architecture to decouple request acceptance from SWIFT processing, returning an immediate 202 Accepted with status polling. 7. Add monitoring/alerting for connection pool utilization and queue depth."
+        "technical_details": "1. Augmenter la taille du pool de connexions de l'adaptateur SWIFT et implémenter un circuit breaker pour éviter l'épuisement total. 2. Investiguer la régression introduite dans le déploiement v3.2.1 du service d'orchestration — comparer les métriques de performance avant/après. 3. Corriger le mécanisme de réessai (implémenter un retry avec backoff exponentiel et jitter). 4. Ajouter une file d'attente asynchrone (ex: Kafka) pour absorber les pics de charge au lieu du traitement synchrone. 5. Augmenter le timeout de la passerelle de transaction au-delà de 30 secondes ou rendre le traitement asynchrone avec notification. 6. Mettre en place de l'auto-scaling sur le service d'orchestration des paiements pour les heures de pointe."
       }
     },
     {
       "group_id": 3,
-      "theme": "AML/compliance report generation slow",
+      "theme": "Lenteur de génération des rapports de conformité LCB-FT",
       "confidence": "HIGH",
       "issues": [
         {
-          "key": "SCRUM-7",
-          "summary": "AML report generation takes over 30 minutes"
+          "key": "SCRUM-45",
+          "summary": "La génération du rapport LCB-FT prend plus de 30 minutes"
         },
         {
-          "key": "SCRUM-8",
-          "summary": "Anti-money laundering daily reports are extremely slow"
+          "key": "SCRUM-46",
+          "summary": "Les rapports quotidiens anti-blanchiment sont extrêmement lents"
         },
         {
-          "key": "SCRUM-9",
-          "summary": "Compliance report generation performance degradation"
+          "key": "SCRUM-47",
+          "summary": "Dégradation des performances de génération des rapports de conformité"
         }
       ],
-      "similarity_explanation": "All three describe the same performance issue with compliance report generation. SCRUM-7 and SCRUM-8 both specifically call out AML reports taking 25-40 minutes with full table scans instead of indexed queries. SCRUM-9 is slightly broader (AML, CTR, and SAR reports) and attributes the degradation to transaction volume growth from 3 new institutional clients. The root cause is the same: the report query engine is not using proper indexes on a growing transaction dataset.",
-      "recommended_primary": "SCRUM-9",
-      "recommended_action": "Keep SCRUM-9 as the primary since it has the broadest scope (all compliance reports, not just AML). Link SCRUM-7 and SCRUM-8 as duplicates. Merge the specific details about full table scans and missing date-partitioned indexes from SCRUM-7/SCRUM-8 into SCRUM-9.",
+      "similarity_explanation": "Les trois tickets décrivent le même problème de performance des rapports de conformité. SCRUM-45 et SCRUM-46 sont quasi-identiques : les rapports LCB-FT prennent 25-40 minutes au lieu de 5, à cause de parcours complets de table sans indexation correcte. SCRUM-47 élargit le périmètre à tous les rapports réglementaires (LCB-FT, CTR, SAR) et identifie la cause de la dégradation : augmentation de 300% du volume suite à l'intégration de 3 nouveaux clients institutionnels. SCRUM-46 précise que les index existent mais ne sont pas utilisés par le planificateur de requêtes.",
+      "recommended_primary": "SCRUM-47",
+      "recommended_action": "Conserver SCRUM-47 car il a le périmètre le plus large (tous les rapports réglementaires) et identifie la cause de la dégradation (augmentation de volume). Enrichir avec les détails de SCRUM-45 (contrainte de 5 min après clôture du marché, risque d'amendes) et SCRUM-46 (les index existent mais le planificateur de requêtes ne les utilise pas). Fermer SCRUM-45 et SCRUM-46 comme doublons.",
       "solution": {
-        "description": "Optimize compliance report queries to use proper indexing and partitioning on the transactions database to bring generation time under the 5-minute regulatory SLA.",
+        "description": "Optimiser les requêtes de génération des rapports réglementaires pour supporter le volume accru de transactions, en corrigeant l'utilisation des index et en envisageant le partitionnement des données.",
         "priority": "CRITICAL",
         "complexity": "Medium",
-        "technical_details": "1. Add or rebuild date-partitioned indexes on the transaction ledger (partition by transaction_date). 2. Rewrite report queries to leverage partition pruning — ensure WHERE clauses filter on the partition key. 3. Add composite indexes for the most common report filters (account_type, transaction_amount, risk_score, date). 4. Consider materialized views or pre-aggregation tables that refresh incrementally for standard report patterns. 5. Implement query result caching for reports run multiple times with the same parameters. 6. For the increased data volume from new institutional clients, evaluate table partitioning strategy (monthly vs. weekly partitions). 7. Add query execution plan monitoring to detect future full-table-scan regressions. 8. As a short-term fix, schedule reports to pre-generate 5 minutes before market close using the nearly-final dataset."
+        "technical_details": "1. Analyser les plans d'exécution des requêtes (EXPLAIN ANALYZE) pour comprendre pourquoi les index partitionnés par date ne sont pas utilisés — probables statistiques obsolètes ou hints manquants. 2. Exécuter ANALYZE/UPDATE STATISTICS sur le registre des transactions après l'augmentation de 300% du volume. 3. Vérifier que le partitionnement par date est correctement configuré et que les requêtes incluent des prédicats de date permettant l'élagage de partitions. 4. Envisager la création de vues matérialisées pré-agrégées rafraîchies en continu pour les rapports fréquents. 5. Implémenter un calcul incrémental des rapports (traiter uniquement les nouvelles transactions depuis le dernier run). 6. Ajouter un monitoring d'alerte si le temps de génération dépasse 5 minutes."
       }
     },
     {
       "group_id": 4,
-      "theme": "Payment gateway 503/unavailable errors",
+      "theme": "Erreurs HTTP 503 intermittentes de la passerelle de paiement tierce",
       "confidence": "HIGH",
       "issues": [
         {
-          "key": "SCRUM-10",
-          "summary": "Third-party payment gateway returning 503 errors intermittently"
+          "key": "SCRUM-48",
+          "summary": "La passerelle de paiement tierce renvoie des erreurs 503 de manière intermittente"
         },
         {
-          "key": "SCRUM-11",
-          "summary": "Payment gateway integration sporadic service unavailable errors"
+          "key": "SCRUM-49",
+          "summary": "Erreurs sporadiques de service indisponible de l'intégration de la passerelle de paiement"
         }
       ],
-      "similarity_explanation": "Both issues describe the same problem: intermittent 503 Service Unavailable errors from the payment gateway integration affecting 2-4% of card transactions with no discernible pattern. SCRUM-10 adds that the gateway vendor blames malformed headers on our side. SCRUM-11 notes the impact on POS debit card purchases. They are clearly the same bug.",
-      "recommended_primary": "SCRUM-10",
-      "recommended_action": "Keep SCRUM-10 as the primary (it includes the vendor's feedback about malformed headers, which is a key diagnostic clue). Link SCRUM-11 as duplicate. Add the POS/debit card context from SCRUM-11 to SCRUM-10.",
+      "similarity_explanation": "Les deux tickets décrivent exactement le même problème : des erreurs 503 intermittentes sur la passerelle de paiement tierce, affectant 2 à 4% des transactions par carte, sans corrélation avec l'heure ou le volume. SCRUM-48 précise que le fournisseur attribue le problème à des en-têtes mal formés dans les requêtes API. SCRUM-49 ajoute que les achats par carte de débit en point de vente sont impactés. Ce sont deux signalements identiques du même incident.",
+      "recommended_primary": "SCRUM-48",
+      "recommended_action": "Conserver SCRUM-48 car il contient l'information clé du fournisseur (en-têtes mal formés). Ajouter le détail de SCRUM-49 (impact sur les cartes de débit en point de vente). Fermer SCRUM-49 comme doublon.",
       "solution": {
-        "description": "Diagnose and fix the malformed API request headers causing intermittent 503 errors from the third-party payment gateway (Stripe/Adyen).",
-        "priority": "CRITICAL",
+        "description": "Investiguer et corriger les en-têtes HTTP mal formés dans les requêtes envoyées à la passerelle de paiement tierce (Stripe/Adyen) qui causent les erreurs 503 intermittentes.",
+        "priority": "HIGH",
         "complexity": "Medium",
-        "technical_details": "1. Capture and log full HTTP request headers for both successful and failed (503) gateway calls to identify the malformed header. 2. Compare request headers against the gateway's API specification — check Content-Type, Authorization, Idempotency-Key, and any custom headers. 3. Check for race conditions in the API client library that could corrupt headers under concurrent access (thread safety of HTTP client instances). 4. Verify that connection reuse (HTTP keep-alive) is not causing stale auth tokens in headers. 5. Implement request/response correlation logging with the gateway's transaction IDs for cross-referencing with their support. 6. Add retry logic with fresh headers for 503 responses (with idempotency keys to prevent double-charging). 7. Set up real-time alerting when the 503 error rate exceeds 1%."
+        "technical_details": "1. Activer la journalisation complète des requêtes/réponses HTTP vers la passerelle de paiement pour capturer les en-têtes envoyés lors des erreurs 503. 2. Comparer les en-têtes des requêtes qui réussissent vs celles qui échouent — rechercher des différences de Content-Type, Authorization, idempotency-key ou headers spécifiques au fournisseur. 3. Vérifier que l'encodage des caractères spéciaux dans les en-têtes est correct. 4. Implémenter un middleware de validation des en-têtes avant l'envoi à la passerelle. 5. Ajouter un mécanisme de retry avec backoff pour les erreurs 503 transitoires. 6. Coordonner avec l'équipe support du fournisseur (Stripe/Adyen) pour obtenir les détails exacts des en-têtes problématiques."
       }
     },
     {
       "group_id": 5,
-      "theme": "Dashboard balance not updating in real-time",
+      "theme": "Le solde du compte ne se met pas à jour automatiquement sur le tableau de bord",
       "confidence": "HIGH",
       "issues": [
         {
-          "key": "SCRUM-12",
-          "summary": "Account balance not refreshing in real-time on dashboard"
+          "key": "SCRUM-50",
+          "summary": "Le solde du compte ne se rafraîchit pas en temps réel sur le tableau de bord"
         },
         {
-          "key": "SCRUM-13",
-          "summary": "Dashboard shows stale balance data - not updating automatically"
+          "key": "SCRUM-51",
+          "summary": "Le tableau de bord affiche des données de solde obsolètes — pas de mise à jour automatique"
         }
       ],
-      "similarity_explanation": "Both describe the customer dashboard failing to show updated account balances after transactions. SCRUM-12 points to WebSocket connections dropping silently. SCRUM-13 points to a broken polling mechanism not fetching from the account service API. They may reflect two facets of the same real-time update failure (WebSocket primary mechanism failing, and the polling fallback also broken), or they could be the same symptom observed from different debugging angles. Either way, the user-facing problem is identical.",
-      "recommended_primary": "SCRUM-12",
-      "recommended_action": "Keep SCRUM-12 as the primary since it identifies the WebSocket issue. Link SCRUM-13 as duplicate. Include the polling fallback failure details from SCRUM-13 in SCRUM-12's description.",
+      "similarity_explanation": "Les deux tickets décrivent le même problème : le tableau de bord n'actualise pas les soldes après les transactions, provoquant confusion et appels au support. SCRUM-50 identifie un problème de WebSocket qui se déconnecte silencieusement. SCRUM-51 parle du mécanisme de polling du frontend qui ne récupère pas les données mises à jour. Ces deux tickets pointent vers le même problème de rafraîchissement en temps réel, potentiellement avec deux mécanismes défaillants (WebSocket principal + polling fallback).",
+      "recommended_primary": "SCRUM-50",
+      "recommended_action": "Conserver SCRUM-50 et enrichir avec les détails de SCRUM-51 (polling frontend également défaillant, soldes datant de plusieurs heures). Fermer SCRUM-51 comme doublon.",
       "solution": {
-        "description": "Fix both the WebSocket real-time connection and the polling fallback to ensure account balances update automatically on the dashboard.",
+        "description": "Corriger le mécanisme de mise à jour en temps réel des soldes sur le tableau de bord, incluant la connexion WebSocket et le mécanisme de polling de secours.",
         "priority": "HIGH",
         "complexity": "Medium",
-        "technical_details": "1. Investigate WebSocket disconnections: check load balancer WebSocket support (upgrade headers, idle timeout settings), proxy configurations, and server-side heartbeat/ping-pong frames. 2. Add WebSocket reconnection logic with exponential backoff on the frontend. 3. Fix the polling fallback: ensure the frontend falls back to periodic API polling (e.g., every 10-15 seconds) when the WebSocket connection is unavailable. 4. Verify the account service API endpoint returns fresh data (check for caching headers, CDN caching, or stale read replicas). 5. Add a visible indicator on the dashboard showing last-updated timestamp and connection status. 6. Implement server-sent events (SSE) as a middle-ground fallback between WebSocket and polling. 7. Add monitoring for WebSocket connection drop rates and polling failure rates."
+        "technical_details": "1. Diagnostiquer pourquoi la connexion WebSocket se coupe silencieusement — vérifier les timeouts des proxies/load balancers intermédiaires, les heartbeat/ping-pong frames. 2. Implémenter un mécanisme de reconnexion automatique WebSocket avec backoff exponentiel côté client. 3. Corriger le mécanisme de polling fallback : vérifier que le endpoint API du service de comptes retourne bien les données à jour (possible problème de cache côté API). 4. Ajouter un indicateur visuel de l'état de la connexion temps réel pour l'utilisateur. 5. Implémenter un polling périodique comme filet de sécurité même quand le WebSocket est actif (toutes les 30 secondes)."
       }
     },
     {
       "group_id": 6,
-      "theme": "Fraud detection for contactless/tap-to-pay",
-      "confidence": "HIGH",
+      "theme": "Détection de fraude en temps réel par ML pour les paiements sans contact",
+      "confidence": "MEDIUM",
       "issues": [
         {
-          "key": "SCRUM-19",
-          "summary": "Implement real-time fraud detection for contactless card payments"
+          "key": "SCRUM-57",
+          "summary": "Implémenter la détection de fraude en temps réel pour les paiements sans contact"
         },
         {
-          "key": "SCRUM-20",
-          "summary": "Add ML-based fraud scoring for tap-to-pay transactions"
+          "key": "SCRUM-58",
+          "summary": "Ajouter un scoring de fraude basé sur le ML pour les transactions sans contact"
         }
       ],
-      "similarity_explanation": "Both stories request ML-based real-time fraud detection for contactless/tap-to-pay transactions. SCRUM-19 frames it as moving from batch to real-time with sub-second scoring and integration with the existing rules engine. SCRUM-20 focuses on reducing the 12% false positive rate with an ML model under 200ms latency. They describe the same feature initiative — the scope, technology (ML scoring), transaction type (contactless/NFC), and latency requirements overlap almost entirely.",
-      "recommended_primary": "SCRUM-19",
-      "recommended_action": "Keep SCRUM-19 as the primary (broader scope including rules engine integration). Link SCRUM-20 as duplicate. Add the specific false-positive rate (12%) and 200ms latency requirement from SCRUM-20 into SCRUM-19's acceptance criteria.",
+      "similarity_explanation": "Les deux tickets concernent l'amélioration de la détection de fraude sur les paiements sans contact via l'apprentissage automatique. SCRUM-57 met l'accent sur le passage du mode batch au temps réel (<1s) avec intégration ML et 10 000 tx/min. SCRUM-58 se concentre sur la réduction du taux de faux positifs (12%) via un modèle ML avec latence <200ms. Bien que les angles soient légèrement différents (temps réel vs précision), les deux demandent d'implémenter un modèle ML de scoring de fraude en temps réel pour les paiements sans contact — c'est le même projet.",
+      "recommended_primary": "SCRUM-57",
+      "recommended_action": "Conserver SCRUM-57 comme story principale car il a le périmètre le plus large (temps réel + ML + intégration moteur de règles). Enrichir avec les exigences de SCRUM-58 (réduire le taux de faux positifs de 12%, latence d'inférence <200ms, entraînement sur données historiques). Fermer SCRUM-58 comme doublon.",
       "solution": {
-        "description": "Implement a real-time ML-based fraud scoring system for contactless card payments, integrated with the existing rules engine, targeting sub-200ms latency and significant false-positive reduction.",
+        "description": "Implémenter un pipeline de scoring de fraude en temps réel basé sur le ML pour les paiements sans contact, remplaçant le traitement batch actuel à 24h de délai, avec un objectif de latence <200ms et de réduction des faux positifs.",
         "priority": "HIGH",
         "complexity": "Complex",
-        "technical_details": "1. Train an ML model (gradient boosting or neural network) on historical contactless transaction data — features: amount, merchant category, location, time, velocity, device fingerprint. 2. Deploy the model as a low-latency inference service (e.g., TensorFlow Serving, ONNX Runtime) behind the existing rules engine. 3. Implement a hybrid scoring pipeline: rule-based pre-filters → ML model scoring → combined risk score. 4. Target <200ms end-to-end latency using model optimization (quantization, feature store with pre-computed features). 5. Set up A/B testing framework to compare ML model vs. current rule-based system on false positive rate and fraud catch rate. 6. Implement model monitoring for drift detection and automated retraining pipeline. 7. Add a feedback loop from fraud investigations to improve model accuracy over time."
+        "technical_details": "1. Concevoir un pipeline de streaming (Kafka Streams / Flink) pour traiter les transactions sans contact en temps réel. 2. Entraîner un modèle ML (gradient boosting ou réseau de neurones léger) sur les données historiques de fraude, optimisé pour une inférence <200ms. 3. Déployer le modèle via un service de scoring à faible latence (TensorFlow Serving / ONNX Runtime). 4. Intégrer le scoring ML comme étape dans le pipeline de décision de fraude existant, en complément du moteur de règles. 5. Implémenter un feature store temps réel pour les caractéristiques de transaction (vélocité, géolocalisation, montant moyen). 6. Prévoir un mécanisme de fallback sur le moteur de règles si le service ML est indisponible. 7. Dimensionner pour 10 000+ transactions/minute aux heures de pointe."
       }
     },
     {
       "group_id": 7,
-      "theme": "Loan/mortgage approval workflow stuck",
+      "theme": "Workflow d'approbation de prêt bloqué dans le pipeline de traitement",
       "confidence": "MEDIUM",
       "issues": [
         {
-          "key": "SCRUM-21",
-          "summary": "Loan approval workflow stuck in pending state for 48+ hours"
+          "key": "SCRUM-59",
+          "summary": "Le workflow d'approbation de prêt est bloqué en état d'attente depuis plus de 48 heures"
         },
         {
-          "key": "SCRUM-22",
-          "summary": "Mortgage application processing pipeline hangs indefinitely"
+          "key": "SCRUM-60",
+          "summary": "Le pipeline de traitement des demandes de prêt hypothécaire se bloque indéfiniment"
         }
       ],
-      "similarity_explanation": "Both describe loan/mortgage application workflows getting stuck and not progressing. SCRUM-21 is about the automated decision engine not triggering the next step after credit checks (personal loans, auto loans, credit lines — 300+ stuck). SCRUM-22 is about mortgage applications hanging after document verification due to a dead letter queue issue in the message broker. While they affect different loan types and different workflow stages, they share the same pattern: a message/event-driven workflow pipeline failing to advance. The root cause may differ (decision engine trigger vs. dead letter queue), so confidence is MEDIUM.",
-      "recommended_primary": "SCRUM-21",
-      "recommended_action": "Keep both issues but link them as related. SCRUM-21 covers general loan workflow stalling (decision engine trigger failure), SCRUM-22 covers mortgage-specific pipeline hang (dead letter queue). If investigation reveals a common message broker issue, merge into one. Otherwise, treat as related but distinct bugs that should be fixed in the same sprint.",
+      "similarity_explanation": "Les deux tickets décrivent des demandes de prêt bloquées dans le pipeline de traitement nécessitant une intervention manuelle. SCRUM-59 concerne les prêts personnels/auto/crédit bloqués après la vérification de crédit (moteur de décision ne déclenche pas l'étape suivante). SCRUM-60 concerne les prêts hypothécaires bloqués après la vérification des documents (file de lettres mortes entre service de documents et souscription). Bien que les types de prêts et les étapes diffèrent, le symptôme est identique (blocage du workflow) et la cause racine probable est liée au même système de messagerie/orchestration de workflow. Confiance MEDIUM car les causes techniques pourraient être distinctes.",
+      "recommended_primary": "SCRUM-59",
+      "recommended_action": "Conserver SCRUM-59 comme ticket principal car il a le périmètre le plus large (tous types de prêts). Enrichir avec les détails de SCRUM-60 (problème de dead letter queue entre service documents et souscription, 150 demandes hypothécaires bloquées). Investiguer si la cause racine est commune (système de messagerie/orchestration). Fermer SCRUM-60 comme doublon.",
       "solution": {
-        "description": "Fix the workflow orchestration failures in both the loan approval decision engine and the mortgage document-to-underwriting message pipeline.",
-        "priority": "HIGH",
+        "description": "Diagnostiquer et corriger les blocages dans le pipeline de workflow d'approbation de prêt, incluant le moteur de décision et la file de messages entre les services.",
+        "priority": "CRITICAL",
         "complexity": "Complex",
-        "technical_details": "1. For SCRUM-21: Investigate the automated decision engine's event listener — check if the credit check completion event is being published correctly and if the decision engine's consumer is subscribed and healthy. Check for stuck message acknowledgments or consumer group lag. 2. For SCRUM-22: Inspect the dead letter queue between document service and underwriting service — process or replay the dead-lettered messages, fix the deserialization or validation error causing messages to be DLQ'd. 3. For both: Add workflow state monitoring with alerts when any application stays in a single state beyond a configurable threshold (e.g., 4 hours). 4. Implement a compensation/retry mechanism that automatically retries stuck transitions. 5. Add a manual override dashboard for operations staff to view stuck workflows and trigger re-processing. 6. Audit the message broker (Kafka/RabbitMQ) health: check partition assignments, consumer lag, and DLQ depth."
+        "technical_details": "1. Analyser la dead letter queue (DLQ) du courtier de messages pour identifier les messages en échec et les raisons de rejet. 2. Vérifier le moteur de décision automatisé : pourquoi l'étape suivante n'est pas déclenchée après la vérification de crédit — probable erreur silencieuse ou condition de transition non satisfaite. 3. Implémenter un monitoring/alerting sur l'âge des messages dans chaque étape du workflow (alerte si >2h dans un état). 4. Ajouter un mécanisme de retry automatique avec DLQ processing pour les messages en échec. 5. Créer un outil d'administration pour débloquer manuellement les demandes en lot (traiter les 450+ demandes en retard). 6. Implémenter un health check du workflow qui détecte les demandes bloquées et envoie des alertes proactives. 7. Revoir la configuration des consumers du courtier de messages (possible problème de consommation arrêtée)."
       }
     },
     {
       "group_id": 8,
-      "theme": "Premature session expiry / random logout",
+      "theme": "Expiration prématurée et déconnexions aléatoires des sessions bancaires en ligne",
       "confidence": "HIGH",
       "issues": [
         {
-          "key": "SCRUM-23",
-          "summary": "User sessions expiring prematurely during online banking"
+          "key": "SCRUM-61",
+          "summary": "Les sessions utilisateur expirent prématurément pendant la banque en ligne"
         },
         {
-          "key": "SCRUM-24",
-          "summary": "Customers getting logged out randomly while using internet banking"
+          "key": "SCRUM-62",
+          "summary": "Les clients sont déconnectés de manière aléatoire en utilisant la banque en ligne"
         }
       ],
-      "similarity_explanation": "Both describe customers being unexpectedly logged out during active online banking sessions. SCRUM-23 identifies the symptom (2-3 min expiry instead of 15 min, 20% of sessions affected) and points to session cookies losing their refresh token. SCRUM-24 identifies the root cause as load balancer session affinity — when traffic is routed to a different backend server, the session is not recognized. These are the same bug: sticky sessions failing at the load balancer cause the session/refresh token to be unrecognized, resulting in premature logout.",
-      "recommended_primary": "SCRUM-24",
-      "recommended_action": "Keep SCRUM-24 as the primary since it identifies the root cause (load balancer session affinity). Link SCRUM-23 as duplicate. Add the quantitative data from SCRUM-23 (20% of sessions, 2-3 min vs. 15 min configured timeout) to SCRUM-24.",
+      "similarity_explanation": "Les deux tickets décrivent des sessions bancaires en ligne qui se terminent de manière inattendue pendant l'utilisation active. SCRUM-61 identifie l'expiration après 2-3 minutes au lieu de 15 (refresh token perdu). SCRUM-62 identifie un problème d'affinité de session du load balancer (session non reconnue sur un serveur différent). Ces deux causes sont complémentaires et produisent le même symptôme : quand le load balancer redirige vers un autre serveur, le refresh token stocké en mémoire locale du serveur d'origine est perdu, causant l'expiration prématurée.",
+      "recommended_primary": "SCRUM-61",
+      "recommended_action": "Conserver SCRUM-61 et enrichir avec la cause racine identifiée dans SCRUM-62 (affinité de session du load balancer). Les deux symptômes sont probablement liés : la perte du refresh token est causée par le routage vers un serveur différent. Fermer SCRUM-62 comme doublon.",
       "solution": {
-        "description": "Fix load balancer session affinity and implement server-independent session management to eliminate premature logouts.",
+        "description": "Corriger la gestion des sessions bancaires en ligne en centralisant le stockage des sessions et en corrigeant l'affinité du load balancer pour éliminer les déconnexions aléatoires.",
         "priority": "HIGH",
         "complexity": "Medium",
-        "technical_details": "1. Move session state from local server memory to a centralized session store (Redis/Memcached) so any backend server can validate any session. 2. Alternatively, fix load balancer sticky session configuration — ensure cookie-based affinity is properly configured and the session affinity cookie is not being dropped. 3. If using JWT tokens, ensure the refresh token is validated against a central store, not server-local state. 4. Check load balancer health checks — unhealthy backend servers being removed from the pool will break affinity for their sessions. 5. Verify that the session cookie's domain, path, SameSite, and Secure attributes are correct and consistent across all backend servers. 6. Add session continuity monitoring: alert when the premature logout rate exceeds a threshold. 7. Test with simulated load balancer failover to verify sessions survive backend server changes."
+        "technical_details": "1. Migrer le stockage des sessions d'une mémoire locale serveur vers un store distribué (Redis Cluster) pour que n'importe quel serveur backend puisse reconnaître la session. 2. Alternativement, configurer le sticky sessions (affinité IP/cookie) sur le load balancer comme solution immédiate. 3. S'assurer que le refresh token est stocké dans le store de session distribué et non en mémoire locale. 4. Vérifier la configuration du TTL de session dans le store centralisé (doit être 15 minutes avec renouvellement à chaque activité). 5. Ajouter un mécanisme côté client de détection de session expirée avec re-authentification transparente via le refresh token. 6. Monitorer le taux de sessions perdues avant/après correction."
       }
     }
   ],
   "unique_issues": [
     {
-      "key": "SCRUM-14",
-      "summary": "Credit score calculation module needs FICO Score 10 update",
+      "key": "SCRUM-52",
+      "summary": "Le module de calcul du score de crédit nécessite la mise à jour vers FICO Score 10",
       "solution": {
-        "description": "Upgrade the credit scoring engine from FICO Score 8 to FICO Score 10. Update the scoring algorithm, recalibrate risk thresholds and underwriting decision boundaries, run parallel scoring (v8 and v10) during a transition period to validate, and retrain the underwriting team on new score ranges and interpretations.",
-        "priority": "HIGH",
-        "complexity": "Complex"
-      }
-    },
-    {
-      "key": "SCRUM-15",
-      "summary": "Database connection pool exhaustion during batch processing",
-      "solution": {
-        "description": "Fix connection leak in nightly batch jobs and isolate batch processing from online banking's connection pool. Implement proper try-with-resources / connection release in batch job code, increase pool size or use a dedicated pool for batch, and add connection pool utilization monitoring with alerts.",
-        "priority": "HIGH",
-        "complexity": "Medium"
-      }
-    },
-    {
-      "key": "SCRUM-16",
-      "summary": "Missing audit trail for admin privilege escalation",
-      "solution": {
-        "description": "Implement comprehensive audit logging for all administrative privilege changes. Log timestamp, user ID, target privileges, justification, and approval chain to a tamper-proof audit store. Add a mandatory approval workflow for privilege escalation. This is a SOX compliance critical finding requiring immediate action.",
-        "priority": "CRITICAL",
-        "complexity": "Medium"
-      }
-    },
-    {
-      "key": "SCRUM-17",
-      "summary": "KYC document upload fails for files larger than 5MB",
-      "solution": {
-        "description": "Increase the file size limit to at least 15MB for KYC uploads, add proper client-side and server-side file size validation with clear error messages, and implement client-side image compression to reduce file sizes before upload. Fix the API to return 413 Payload Too Large instead of generic 500.",
-        "priority": "HIGH",
-        "complexity": "Simple"
-      }
-    },
-    {
-      "key": "SCRUM-18",
-      "summary": "Two-factor authentication SMS delivery delayed by 10+ minutes",
-      "solution": {
-        "description": "Switch to a multi-channel OTP delivery approach: add push notification and authenticator app (TOTP) options as primary 2FA, keep SMS as fallback. Investigate carrier-level SMS delays with the SMS provider, consider switching providers or adding a second provider for failover. Extend OTP expiry to 10 minutes as a short-term fix.",
-        "priority": "CRITICAL",
-        "complexity": "Medium"
-      }
-    },
-    {
-      "key": "SCRUM-25",
-      "summary": "Migrate legacy COBOL batch jobs to microservices architecture",
-      "solution": {
-        "description": "Phase the migration using the strangler fig pattern: identify batch jobs, decompose into bounded contexts (reconciliation, interest posting, statements), build event-driven microservices in parallel, run dual-mode (COBOL + microservice) with output comparison, and cut over incrementally. Ensure ACID compliance using the saga pattern with compensating transactions.",
+        "description": "Mettre à jour le moteur de scoring de crédit de FICO Score 8 vers FICO Score 10 en intégrant les données de tendance, calibrer le modèle sur le portefeuille historique, et former l'équipe de souscription aux nouvelles plages de scores.",
         "priority": "MEDIUM",
         "complexity": "Complex"
       }
     },
     {
-      "key": "SCRUM-26",
-      "summary": "Enable recurring payment setup from mobile banking app",
+      "key": "SCRUM-53",
+      "summary": "Épuisement du pool de connexions à la base de données pendant le traitement par lots",
       "solution": {
-        "description": "Extend the existing recurring payments API (currently used by web portal) to the mobile app. Build mobile UI for schedule configuration (frequency, start/end date, amount). Reuse backend logic and add push notification reminders before each scheduled payment execution.",
-        "priority": "MEDIUM",
-        "complexity": "Medium"
-      }
-    },
-    {
-      "key": "SCRUM-27",
-      "summary": "Currency conversion rates not updating for forex transactions",
-      "solution": {
-        "description": "Fix the stale FX rate feed by restarting and monitoring the rate refresh cron job. Add health checks and alerting for FX feed freshness (alert if rates are >5 minutes old). Implement a circuit breaker that blocks forex transactions when rates are stale beyond a threshold. Add a fallback FX feed provider.",
-        "priority": "CRITICAL",
-        "complexity": "Simple"
-      }
-    },
-    {
-      "key": "SCRUM-28",
-      "summary": "Implement PSD2 Strong Customer Authentication compliance",
-      "solution": {
-        "description": "Implement SCA across all payment flows: add dynamic linking (transaction amount + payee in auth challenge), 90-day re-authentication for account access, and proper SCA challenge delegation for third-party payment initiators. Integrate with existing biometric and OTP infrastructure. Must be completed before Q3 audit deadline.",
-        "priority": "CRITICAL",
-        "complexity": "Complex"
-      }
-    },
-    {
-      "key": "SCRUM-29",
-      "summary": "Account statement PDF generation produces corrupted files",
-      "solution": {
-        "description": "Fix the PDF rendering engine's memory overflow for large statements (500+ transactions). Implement paginated/chunked PDF generation that processes transactions in batches. Switch to a streaming PDF library if the current one buffers everything in memory. Add output validation that verifies PDF integrity before serving to customers.",
+        "description": "Corriger la libération des connexions dans les traitements batch nocturnes et redimensionner le pool de connexions. Implémenter un connection pooling avec timeout et libération forcée après exécution, augmenter la limite au-delà de 200 si nécessaire, et isoler le pool de connexions batch de celui des services en ligne.",
         "priority": "HIGH",
         "complexity": "Medium"
       }
     },
     {
-      "key": "SCRUM-30",
-      "summary": "Integrate Open Banking API for third-party fintech partners",
+      "key": "SCRUM-54",
+      "summary": "Piste d'audit manquante pour l'élévation de privilèges administrateur",
       "solution": {
-        "description": "Build PSD2/Open Banking-compliant API endpoints for AIS and PIS. Implement OAuth 2.0 consent management with granular scopes, build a developer portal with sandbox environment, and ensure all endpoints meet Open Banking UK and Berlin Group standards. Include rate limiting, audit logging, and consent dashboard for customers.",
-        "priority": "HIGH",
-        "complexity": "Complex"
-      }
-    },
-    {
-      "key": "SCRUM-31",
-      "summary": "Scheduled maintenance window notifications not sent to customers",
-      "solution": {
-        "description": "Fix the notification scheduler service's silent failure — add proper error handling, logging, and retry logic. Implement a verification step that confirms notifications were queued and delivered before proceeding with maintenance. Add a pre-maintenance checklist that includes notification delivery confirmation as a gate.",
-        "priority": "HIGH",
-        "complexity": "Simple"
-      }
-    },
-    {
-      "key": "SCRUM-32",
-      "summary": "Upgrade TLS certificates to TLS 1.3 across all banking endpoints",
-      "solution": {
-        "description": "Plan a phased TLS 1.3 rollout: inventory all endpoints and third-party integrations, verify TLS 1.3 compatibility with each partner, upgrade load balancers and API gateways first, then internal service mesh. Maintain TLS 1.2 fallback during transition. Coordinate with payment processors and credit bureaus for compatibility testing.",
-        "priority": "HIGH",
-        "complexity": "Complex"
-      }
-    },
-    {
-      "key": "SCRUM-33",
-      "summary": "Duplicate transaction entries appearing in account history",
-      "solution": {
-        "description": "Fix the presentation layer bug in the account history API that shows duplicate transactions. Investigate whether the API is joining multiple data sources (e.g., pending + posted) and deduplicating incorrectly, or if a caching layer is serving stale + fresh data combined. Add unique transaction ID-based deduplication at the API response level.",
-        "priority": "HIGH",
-        "complexity": "Simple"
-      }
-    },
-    {
-      "key": "SCRUM-34",
-      "summary": "Enable biometric authentication for high-value transfers",
-      "solution": {
-        "description": "Extend the existing biometric auth module (currently login-only) to support transaction authorization. Implement PSD2-compliant dynamic linking by including transaction amount and payee in the biometric challenge. Support Face ID and fingerprint for transfers >1,000 EUR, beneficiary additions, and standing order changes.",
-        "priority": "MEDIUM",
-        "complexity": "Medium"
-      }
-    },
-    {
-      "key": "SCRUM-35",
-      "summary": "Interest calculation rounding errors on savings accounts",
-      "solution": {
-        "description": "Replace floating-point arithmetic with fixed-point decimal (e.g., BigDecimal or integer-based cent calculations) in the compound interest formula. Implement banker's rounding (round half to even). Run a reconciliation to calculate and correct cumulative discrepancies across all 2 million accounts. Add automated rounding validation tests.",
+        "description": "Implémenter la journalisation complète des événements d'élévation de privilèges dans le système d'audit SOX. Enregistrer l'identité de l'opérateur, l'horodatage, le rôle source/cible, la justification, et l'approbation. Priorité critique en raison de la constatation SOX.",
         "priority": "CRITICAL",
         "complexity": "Medium"
       }
     },
     {
-      "key": "SCRUM-36",
-      "summary": "Implement data masking for PII in non-production environments",
+      "key": "SCRUM-55",
+      "summary": "Le téléchargement de documents KYC échoue pour les fichiers supérieurs à 5 Mo",
       "solution": {
-        "description": "Implement a data masking pipeline that runs during database refresh to non-prod environments. Use format-preserving encryption or tokenization for SSNs, account numbers, names, addresses, and phone numbers. Ensure masked data maintains referential integrity and realistic format for testing. Automate as part of the environment refresh process.",
+        "description": "Augmenter la limite de taille de téléchargement KYC à 15 Mo minimum. Corriger le message d'erreur pour afficher un message explicite au lieu du 500 générique. Vérifier la configuration du serveur web (nginx/reverse proxy) et du service backend pour les limites de taille de requête.",
+        "priority": "HIGH",
+        "complexity": "Simple"
+      }
+    },
+    {
+      "key": "SCRUM-56",
+      "summary": "Livraison du SMS d'authentification à deux facteurs retardée de plus de 10 minutes",
+      "solution": {
+        "description": "Augmenter la fenêtre de validité OTP de 2 à 5-10 minutes comme correctif immédiat. En parallèle, investiguer le problème de livraison avec l'opérateur téléphonique et envisager un fournisseur SMS alternatif ou un canal de secours (notification push, TOTP via app authenticator).",
         "priority": "HIGH",
         "complexity": "Medium"
       }
     },
     {
-      "key": "SCRUM-37",
-      "summary": "Mobile check deposit image processing fails on Android 14",
+      "key": "SCRUM-63",
+      "summary": "Migrer les traitements batch COBOL hérités vers une architecture microservices",
       "solution": {
-        "description": "Update the OpenCV image processing library to a version compatible with Android 14's new camera API (Camera2/CameraX). If OpenCV doesn't yet support Android 14, use Android's native CameraX API as an interim solution for image capture, passing the result to OpenCV for processing. Test across multiple Android 14 devices from different manufacturers.",
-        "priority": "HIGH",
-        "complexity": "Medium"
-      }
-    },
-    {
-      "key": "SCRUM-38",
-      "summary": "Add real-time push notifications for all account activities",
-      "solution": {
-        "description": "Build an event-driven notification service that subscribes to all account activity events (deposits, withdrawals, card transactions, logins, threshold breaches). Implement configurable notification preferences per account and per channel (push, SMS, email). Use a message broker to decouple event production from notification delivery. Include a preferences UI in both mobile and web.",
+        "description": "Planifier une migration progressive des traitements COBOL vers des microservices avec exécution en parallèle pendant 6 mois. Commencer par les traitements les moins critiques, maintenir la conformité ACID via le pattern Saga, et valider la parité fonctionnelle via une comparaison automatisée des résultats.",
         "priority": "MEDIUM",
         "complexity": "Complex"
+      }
+    },
+    {
+      "key": "SCRUM-64",
+      "summary": "Activer la configuration des paiements récurrents depuis l'application mobile",
+      "solution": {
+        "description": "Développer l'interface mobile pour la configuration de paiements récurrents (ordres permanents, prélèvements). Réutiliser les API existantes de la banque en ligne, ajouter les écrans de configuration de fréquence, la gestion du calendrier de paiement et les notifications push de prochaine exécution.",
+        "priority": "MEDIUM",
+        "complexity": "Medium"
+      }
+    },
+    {
+      "key": "SCRUM-65",
+      "summary": "Les taux de conversion de devises ne se mettent pas à jour pour les transactions forex",
+      "solution": {
+        "description": "Restaurer le flux de données des taux Reuters/Bloomberg interrompu depuis le dernier redémarrage serveur. Corriger la tâche cron de rafraîchissement des taux. Ajouter un monitoring/alerting sur la fraîcheur des taux et un circuit breaker pour bloquer les transactions forex si les taux sont obsolètes de plus de X minutes.",
+        "priority": "CRITICAL",
+        "complexity": "Simple"
+      }
+    },
+    {
+      "key": "SCRUM-66",
+      "summary": "Implémenter la conformité à l'authentification forte du client DSP2",
+      "solution": {
+        "description": "Implémenter les exigences SCA DSP2 : liaison dynamique des montants, ré-authentification à 90 jours, challenges SCA pour les TPP. Coordonner avec les flux de paiement existants et planifier la livraison avant l'audit réglementaire T3.",
+        "priority": "CRITICAL",
+        "complexity": "Complex"
+      }
+    },
+    {
+      "key": "SCRUM-67",
+      "summary": "La génération de relevés de compte en PDF produit des fichiers corrompus",
+      "solution": {
+        "description": "Corriger le dépassement de mémoire du moteur de rendu PDF pour les comptes à fort volume (>500 transactions). Implémenter une génération par flux (streaming) au lieu de charger toutes les transactions en mémoire. Ajouter une pagination dans le PDF et augmenter les limites de mémoire du processus de génération.",
+        "priority": "HIGH",
+        "complexity": "Medium"
+      }
+    },
+    {
+      "key": "SCRUM-68",
+      "summary": "Intégrer l'API Open Banking pour les partenaires fintech tiers",
+      "solution": {
+        "description": "Construire les endpoints AIS et PIS conformes DSP2/Open Banking avec gestion du consentement OAuth2. Fournir un portail développeur avec sandbox. Ce ticket est complémentaire au SCRUM-66 (SCA DSP2) — coordonner les deux implémentations.",
+        "priority": "HIGH",
+        "complexity": "Complex"
+      }
+    },
+    {
+      "key": "SCRUM-69",
+      "summary": "Les notifications de fenêtre de maintenance planifiée ne sont pas envoyées aux clients",
+      "solution": {
+        "description": "Corriger le service de planification des notifications qui échoue silencieusement. Ajouter une journalisation et un monitoring sur l'envoi des notifications. Implémenter un mécanisme de vérification qui confirme que les notifications ont été envoyées avant de procéder à la maintenance.",
+        "priority": "MEDIUM",
+        "complexity": "Simple"
+      }
+    },
+    {
+      "key": "SCRUM-70",
+      "summary": "Mettre à niveau les certificats TLS vers TLS 1.3 sur tous les points d'accès bancaires",
+      "solution": {
+        "description": "Planifier la migration TLS 1.2 → 1.3 sur tous les endpoints : load balancers, API gateways, communication inter-services et connexions partenaires. Procéder par environnement (dev → staging → prod) avec tests de compatibilité tiers à chaque étape.",
+        "priority": "MEDIUM",
+        "complexity": "Medium"
+      }
+    },
+    {
+      "key": "SCRUM-71",
+      "summary": "Des entrées de transactions en double apparaissent dans l'historique du compte",
+      "solution": {
+        "description": "Investiguer le bug de la couche de présentation qui affiche des doublons alors que la base de données est correcte. Probable problème de cache frontend, de jointure incorrecte dans la requête API, ou de re-render côté client. Corriger la requête ou la logique de déduplication dans la couche de présentation.",
+        "priority": "HIGH",
+        "complexity": "Simple"
+      }
+    },
+    {
+      "key": "SCRUM-72",
+      "summary": "Activer l'authentification biométrique pour les virements de montant élevé",
+      "solution": {
+        "description": "Étendre le framework biométrique existant (empreinte/Face ID) aux virements à montant élevé, ajouts de bénéficiaires et modifications d'ordres permanents. S'assurer de la conformité SCA DSP2. Coordonner avec SCRUM-66 (DSP2 SCA) pour une implémentation cohérente.",
+        "priority": "MEDIUM",
+        "complexity": "Medium"
+      }
+    },
+    {
+      "key": "SCRUM-73",
+      "summary": "Erreurs d'arrondi dans le calcul des intérêts sur les comptes d'épargne",
+      "solution": {
+        "description": "Migrer l'arithmétique en virgule flottante vers une arithmétique décimale à virgule fixe (BigDecimal/Decimal128) pour tous les calculs financiers. Recalculer et corriger les écarts accumulés (50 000+ EUR sur 2M comptes). Ajouter des tests de précision automatisés.",
+        "priority": "CRITICAL",
+        "complexity": "Medium"
+      }
+    },
+    {
+      "key": "SCRUM-74",
+      "summary": "Implémenter le masquage des données personnelles dans les environnements hors production",
+      "solution": {
+        "description": "Implémenter un masquage des données préservant le format (format-preserving encryption ou tokenisation) pour tous les champs PII dans les environnements dev/staging/QA. Maintenir l'intégrité référentielle entre les tables. Automatiser le processus de masquage dans le pipeline de rafraîchissement des environnements.",
+        "priority": "HIGH",
+        "complexity": "Complex"
+      }
+    },
+    {
+      "key": "SCRUM-75",
+      "summary": "Le traitement d'image du dépôt de chèque mobile échoue sur Android 14",
+      "solution": {
+        "description": "Mettre à jour la bibliothèque OpenCV de capture caméra pour la rendre compatible avec la nouvelle API caméra d'Android 14. Tester sur les appareils Android 14 les plus courants. Impacte 30% des utilisateurs Android — priorité élevée.",
+        "priority": "HIGH",
+        "complexity": "Simple"
+      }
+    },
+    {
+      "key": "SCRUM-76",
+      "summary": "Ajouter des notifications push en temps réel pour toutes les activités du compte",
+      "solution": {
+        "description": "Étendre le système de notifications pour couvrir toutes les activités du compte (dépôts, retraits, cartes, connexions, seuils de solde). Implémenter des préférences configurables par compte et par canal (push, SMS, e-mail). S'appuyer sur l'infrastructure d'événements temps réel existante.",
+        "priority": "MEDIUM",
+        "complexity": "Medium"
       }
     }
   ]
